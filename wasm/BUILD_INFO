@@ -1,0 +1,5 @@
+upstream: none (C11 from scratch)
+build_date: 2026-05-25T14:47:22Z
+emscripten: emcc (Emscripten gcc/clang-like replacement + linker emulating GNU ld) 5.0.2 (dc80f645ee70178c11666de0c3860d9e064d50e4)
+build_flags: -O2 -std=c11 SINGLE_FILE=1
+wasm_embedded: true
