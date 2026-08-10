@@ -690,6 +690,7 @@ double bo_acq_eval_grad(const bo_gp_t *gp, const double *x,
 }
 
 static double acq_objective(const double *x, double *grad, int32_t n, void *ctx_) {
+    (void)n;
     acq_ctx_t *ctx = (acq_ctx_t *)ctx_;
     return bo_acq_eval_grad(ctx->gp, x, ctx->acq_fn,
                             ctx->kappa, ctx->xi, ctx->f_best, grad);
@@ -1243,7 +1244,6 @@ int bo_observe(bo_state_t *state, const double *params, double score) {
 }
 
 int bo_suggest(bo_state_t *state, double *params) {
-    int32_t nd = state->space.n_dims;
     int32_t nc = state->space.n_categorical;
 
     /* Step 1: Select categorical values via Thompson sampling */

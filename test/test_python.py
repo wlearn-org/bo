@@ -7,7 +7,7 @@ import math
 import json
 
 # Add the Python package to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'packages', 'python'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'py'))
 
 from wlearn_bo import BayesianOptimizer
 from wlearn_bo._bo import (

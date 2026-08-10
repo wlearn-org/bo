@@ -13,5 +13,4 @@ package-lock.json
 *.log
 .DS_Store
 coverage/
-csrc/
 bench/

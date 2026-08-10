@@ -4,7 +4,7 @@
  * Synthetic functions with known optima. Deterministic, reports environment.
  */
 
-const { BayesianOptimizer, loadBO } = require('../src/index.js')
+const { BayesianOptimizer, loadBO } = require('../js/src/index.js')
 
 const { sin, cos, exp, abs, PI, sqrt } = Math
 

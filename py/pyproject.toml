@@ -7,9 +7,9 @@ name = "wlearn-bo"
 version = "0.1.0"
 description = "Bayesian optimization with Gaussian processes for hyperparameter tuning"
 readme = "README.md"
+authors = [{ name = "Anton Zemlyansky" }]
 license = "Apache-2.0"
 requires-python = ">=3.9"
-dependencies = ["numpy"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
@@ -27,9 +27,9 @@ classifiers = [
 keywords = ["bayesian-optimization", "gaussian-process", "hyperparameter-tuning", "automl", "wlearn"]
 
 [project.urls]
-Homepage = "https://github.com/wlearn-org/wlearn"
-Repository = "https://github.com/wlearn-org/wlearn"
-Issues = "https://github.com/wlearn-org/wlearn/issues"
+Homepage = "https://wlearn.org"
+Repository = "https://github.com/wlearn-org/bo"
+Issues = "https://github.com/wlearn-org/bo/issues"
 
 [tool.setuptools.packages.find]
 include = ["wlearn_bo*"]

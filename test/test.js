@@ -35,7 +35,7 @@ async function main() {
 
   // ---- compile.js tests ----
 
-  const { compileSpace, encodeParams, decodeParams, countFreeParams } = require('../src/compile.js')
+  const { compileSpace, encodeParams, decodeParams, countFreeParams } = require('../js/src/compile.js')
 
   await test('compileSpace: continuous params', async () => {
     const space = {
@@ -163,8 +163,8 @@ async function main() {
 
   // ---- WASM + optimizer tests ----
 
-  const { BayesianOptimizer } = require('../src/optimizer.js')
-  const { loadBO } = require('../src/wasm.js')
+  const { BayesianOptimizer } = require('../js/src/optimizer.js')
+  const { loadBO } = require('../js/src/wasm.js')
 
   await test('WASM loads', async () => {
     const wasm = await loadBO()

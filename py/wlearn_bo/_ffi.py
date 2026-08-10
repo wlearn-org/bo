@@ -30,9 +30,9 @@ def _find_lib():
         if os.path.isfile(candidate):
             return candidate
 
-    # 3. Development layout: packages/python/../../build/libbo.so
+    # 3. Development layout: py/../../build/libbo.so
     dev_build = os.path.normpath(
-        os.path.join(this_dir, '..', '..', '..', 'build', 'libbo.so')
+        os.path.join(this_dir, '..', '..', 'build', 'libbo.so')
     )
     if os.path.isfile(dev_build):
         return dev_build

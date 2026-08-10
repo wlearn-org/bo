@@ -4,13 +4,12 @@ Bayesian optimization with Gaussian processes for hyperparameter tuning. Part of
 
 C11 core compiled to WebAssembly. All BO policy (GP fitting, acquisition optimization, categorical Thompson sampling, per-context GPs) runs in native code. JS wrapper is a thin translation layer.
 
-## Repository Layout
+## Package Layout
 
-- `src/` is the canonical C11 source.
-- `js/` is the npm package for `@wlearn/bo`; its `csrc/` directory is generated from root `src/`.
-- `py/` is the Python package for `wlearn-bo`; its `csrc/` directory is generated from root `src/`.
-- Set `WLEARN_PYTHON=/path/to/python` to run Python sync/build/test targets with a specific environment.
-- Default Python tests use package fixtures and deterministic optimizer cases.
+- `src/` is the JavaScript wrapper.
+- `csrc/` is generated from repository root `src/` before build/pack.
+- `wasm/` and `dist/` are generated package artifacts.
+- `WLEARN_PYTHON` is honored by package lifecycle scripts when Emscripten needs Python.
 
 ## Install
 
