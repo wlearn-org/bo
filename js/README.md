@@ -76,6 +76,13 @@ Conditional parameters are supported via `condition`:
 
 ## API
 
+Conditions may refer to parents declared later and may have multiple parents.
+All parents must be active and match. Missing parents and cycles are rejected;
+an empty condition is unconditional. Object values compare independently of key
+order, while booleans remain distinct from numbers. Decoding evaluates dependencies
+in order without changing the compiled coordinate order.
+
+
 - `loadBO()` initializes the WASM module.
 - `BayesianOptimizer.create(searchSpace, opts)` creates an optimizer.
 - `suggest()` returns one parameter object.

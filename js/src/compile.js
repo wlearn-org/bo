@@ -12,17 +12,15 @@
  */
 
 const { floor, round, log, exp } = Math
+const { valueEqual, conditionOrder, conditionSatisfied } = require('./conditions.js')
 
 /**
  * Look up a value in a categorical param's values array.
- * Uses === first, falls back to JSON deep equality.
+ * Uses portable value equality (object key order is irrelevant).
  * Returns index or -1.
  */
 function findValueIndex(values, target) {
-  const idx = values.indexOf(target)
-  if (idx !== -1) return idx
-  const targetStr = JSON.stringify(target)
-  return values.findIndex(v => JSON.stringify(v) === targetStr)
+  return values.findIndex(value => valueEqual(value, target))
 }
 
 /**
@@ -32,6 +30,7 @@ function findValueIndex(values, target) {
  * @returns {object} compiled IR
  */
 function compileSpace(searchSpace) {
+  const evaluationNames = conditionOrder(searchSpace)
   const paramNames = Object.keys(searchSpace)
   const n = paramNames.length
   const nameToId = new Map()
@@ -134,6 +133,7 @@ function compileSpace(searchSpace) {
 
   return {
     paramNames,
+    evaluationOrder: evaluationNames.map(name => nameToId.get(name)),
     nameToId,
     paramTypes,
     lows,
@@ -188,20 +188,6 @@ function encodeParams(compiled, params) {
 }
 
 /**
- * Check if a condition is satisfied given decoded categorical params.
- * Evaluates all condition keys conjunctively (same as automl sampler).
- */
-function isConditionSatisfied(condition, decodedParams) {
-  for (const [key, requiredValue] of Object.entries(condition)) {
-    const actual = decodedParams[key]
-    if (actual === requiredValue) continue
-    // Deep equality fallback
-    if (JSON.stringify(actual) !== JSON.stringify(requiredValue)) return false
-  }
-  return true
-}
-
-/**
  * Decode a flat double[] from the C engine into a JS params object.
  * Integer indices -> original categorical values; integer dims -> Math.round().
  * Evaluates full multi-parent conditions in JS.
@@ -211,30 +197,16 @@ function isConditionSatisfied(condition, decodedParams) {
  * @returns {object} decoded params { paramName: value, ... }
  */
 function decodeParams(compiled, doubles) {
-  const { paramNames, paramTypes, valueMaps, conditions, nDims } = compiled
+  const { paramNames, paramTypes, valueMaps, conditions } = compiled
   const params = {}
 
-  // First pass: decode categorical params (needed for condition evaluation)
-  for (let i = 0; i < nDims; i++) {
-    if (paramTypes[i] === 2) {
-      const idx = round(doubles[i])
-      const vals = valueMaps.get(paramNames[i])
-      params[paramNames[i]] = vals[idx]
-    }
-  }
-
-  // Second pass: decode continuous/integer, respecting full conditions
-  for (let i = 0; i < nDims; i++) {
-    if (paramTypes[i] === 2) continue // already decoded
-
-    // Check full condition (all parents, not just the C-level one)
-    if (conditions[i]) {
-      if (!isConditionSatisfied(conditions[i], params)) continue // inactive
-    }
-
+  // Evaluation order is separate from the persisted C coordinate order.
+  for (const i of compiled.evaluationOrder) {
+    if (!conditionSatisfied(conditions[i], params)) continue
     let value = doubles[i]
-    if (paramTypes[i] === 1) {
-      // Integer: round
+    if (paramTypes[i] === 2) {
+      value = valueMaps.get(paramNames[i])[round(value)]
+    } else if (paramTypes[i] === 1) {
       value = round(value)
     }
     params[paramNames[i]] = value

@@ -59,3 +59,11 @@ BO state is intentionally ephemeral; warm-start by replaying `observe()` calls.
 The canonical native source is repository root `src/`; `py/csrc/` is generated
 for Python builds. Use `WLEARN_PYTHON=/path/to/python make test-py` from the
 repository root to force a specific Python environment.
+
+## Conditional parameters
+
+Conditions may refer to parents declared later and may have multiple parents.
+All parents must be active and match. Missing parents and cycles are rejected;
+an empty condition is unconditional. Object values compare independently of key
+order, while booleans remain distinct from numbers. Decoding evaluates dependencies
+in order without changing the compiled coordinate order.

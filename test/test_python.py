@@ -12,7 +12,6 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'py'))
 from wlearn_bo import BayesianOptimizer
 from wlearn_bo._bo import (
     _compile_space, _encode_params, _decode_params, _find_value_index,
-    _is_condition_satisfied,
 )
 
 tests_run = 0
@@ -503,5 +502,52 @@ test('deterministic parity', test_parity_deterministic)
 
 
 # === Summary ===
+def test_nested_conditional_decoding():
+    space = {
+        'c': {'type': 'categorical', 'values': ['x', 'y'], 'condition': {'b': 2}},
+        'b': {'type': 'int_uniform', 'low': 2, 'high': 3, 'condition': {'a': 'on'}},
+        'a': {'type': 'categorical', 'values': ['on', 'off']},
+    }
+    compiled = _compile_space(space)
+    assert compiled['param_names'] == ['c', 'b', 'a']
+    assert _decode_params(compiled, [1, 2, 0]) == {'a': 'on', 'b': 2, 'c': 'y'}
+    assert _decode_params(compiled, [1, 2, 1]) == {'a': 'off'}
+    assert _decode_params(compiled, [1, 3, 0]) == {'a': 'on', 'b': 3}
+
+
+test('conditional dependency order', test_nested_conditional_decoding)
+
+
+def test_portable_conditions():
+    space = {
+        'value': {'type': 'categorical', 'values': [{'a': 1, 'b': True}, {'b': 1, 'a': 1}]},
+        'yes': {'type': 'categorical', 'values': [None], 'condition': {'value': {'b': True, 'a': 1}}},
+        'child': {'type': 'categorical', 'values': [2], 'condition': {'yes': None}},
+        'empty': {'type': 'categorical', 'values': [1], 'condition': {}},
+    }
+    compiled = _compile_space(space)
+    assert _decode_params(compiled, [0, 0, 0, 0]) == {'value': {'a': 1, 'b': True}, 'yes': None, 'child': 2, 'empty': 1}
+    assert _decode_params(compiled, [1, 0, 0, 0]) == {'value': {'b': 1, 'a': 1}, 'empty': 1}
+    assert _find_value_index([True, 1], 1) == 1
+
+
+test('portable condition values', test_portable_conditions)
+
+
+def test_condition_cycles():
+    try:
+        _compile_space({
+            'a': {'type': 'categorical', 'values': [1], 'condition': {'b': 1}},
+            'b': {'type': 'categorical', 'values': [1], 'condition': {'a': 1}},
+        })
+    except ValueError as exc:
+        assert 'cycl' in str(exc).lower()
+    else:
+        raise AssertionError('cycle was accepted')
+
+
+test('condition cycles', test_condition_cycles)
+
+
 print(f'\n{tests_run} tests: {tests_passed} passed, {tests_run - tests_passed} failed\n')
 sys.exit(0 if tests_passed == tests_run else 1)

@@ -466,6 +466,42 @@ async function main() {
 
   // ---- Summary ----
 
+  await test('conditional decoding follows dependencies without reordering coordinates', async () => {
+    const a = require('node:assert/strict')
+    const space = {
+      c: { type: 'categorical', values: ['x', 'y'], condition: { b: 2 } },
+      b: { type: 'int_uniform', low: 2, high: 3, condition: { a: 'on' } },
+      a: { type: 'categorical', values: ['on', 'off'] },
+    }
+    const compiled = compileSpace(space)
+    a.deepEqual(compiled.paramNames, ['c', 'b', 'a'])
+    a.deepEqual(decodeParams(compiled, [1, 2, 0]), { a: 'on', b: 2, c: 'y' })
+    a.deepEqual(decodeParams(compiled, [1, 2, 1]), { a: 'off' })
+    a.deepEqual(decodeParams(compiled, [1, 3, 0]), { a: 'on', b: 3 })
+  })
+
+  await test('conditional portable values distinguish booleans, numbers and absent parents', async () => {
+    const a = require('node:assert/strict')
+    const space = {
+      value: { type: 'categorical', values: [{ a: 1, b: true }, { b: 1, a: 1 }] },
+      yes: { type: 'categorical', values: [null], condition: { value: { b: true, a: 1 } } },
+      child: { type: 'categorical', values: [2], condition: { yes: null } },
+      empty: { type: 'categorical', values: [1], condition: {} },
+    }
+    const compiled = compileSpace(space)
+    a.deepEqual(decodeParams(compiled, [0, 0, 0, 0]), { value: { a: 1, b: true }, yes: null, child: 2, empty: 1 })
+    a.deepEqual(decodeParams(compiled, [1, 0, 0, 0]), { value: { b: 1, a: 1 }, empty: 1 })
+    const typed = compileSpace({ x: { type: 'categorical', values: [true, 1] } })
+    a.deepEqual(Array.from(encodeParams(typed, { x: 1 })), [1])
+  })
+
+  await test('conditional compiler rejects cycles', async () => {
+    require('node:assert/strict').throws(() => compileSpace({
+      a: { type: 'categorical', values: [1], condition: { b: 1 } },
+      b: { type: 'categorical', values: [1], condition: { a: 1 } },
+    }), /cycl/i)
+  })
+
   console.log(`\n${passed} passed, ${failed} failed\n`)
   if (failed > 0) process.exit(1)
 }

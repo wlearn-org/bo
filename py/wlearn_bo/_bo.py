@@ -13,6 +13,7 @@ import json
 import math
 
 from wlearn_bo._ffi import get_lib
+from ._conditions import value_equal, condition_order, condition_satisfied
 
 # Kernel enum values matching C
 KERNELS = {'matern52': 0, 'matern32': 1, 'se': 2}
@@ -27,15 +28,8 @@ DIM_CATEGORICAL = 2
 
 
 def _find_value_index(values, target):
-    """Find target in values list. Uses == first, falls back to JSON equality."""
-    for i, v in enumerate(values):
-        if v == target:
-            return i
-    target_str = json.dumps(target, sort_keys=True)
-    for i, v in enumerate(values):
-        if json.dumps(v, sort_keys=True) == target_str:
-            return i
-    return -1
+    """Find target using portable value equality, including unordered object keys."""
+    return next((i for i, value in enumerate(values) if value_equal(value, target)), -1)
 
 
 def _compile_space(search_space):
@@ -45,6 +39,7 @@ def _compile_space(search_space):
     search_space: { param_name: { type, low, high, values, condition, ... }, ... }
     Returns a dict with all arrays and mappings needed for encode/decode.
     """
+    evaluation_names = condition_order(search_space)
     param_names = list(search_space.keys())
     n = len(param_names)
     name_to_id = {name: i for i, name in enumerate(param_names)}
@@ -123,6 +118,7 @@ def _compile_space(search_space):
 
     return {
         'param_names': param_names,
+        'evaluation_order': [name_to_id[name] for name in evaluation_names],
         'name_to_id': name_to_id,
         'param_types': param_types,
         'lows': lows,
@@ -165,43 +161,23 @@ def _encode_params(compiled, params):
     return out
 
 
-def _is_condition_satisfied(condition, decoded_params):
-    """Check if all condition keys are satisfied (conjunctive)."""
-    for key, required_value in condition.items():
-        actual = decoded_params.get(key)
-        if actual == required_value:
-            continue
-        if json.dumps(actual, sort_keys=True) != json.dumps(required_value, sort_keys=True):
-            return False
-    return True
-
-
 def _decode_params(compiled, doubles):
     """Decode a flat double array from C into a Python params dict."""
-    n = compiled['n_dims']
     param_names = compiled['param_names']
     param_types = compiled['param_types']
     value_maps = compiled['value_maps']
     conditions = compiled['conditions']
     params = {}
 
-    # First pass: decode categoricals (needed for condition evaluation)
-    for i in range(n):
-        if param_types[i] == DIM_CATEGORICAL:
-            idx = round(doubles[i])
-            vals = value_maps[param_names[i]]
-            params[param_names[i]] = vals[idx]
-
-    # Second pass: decode continuous/integer, respecting conditions
-    for i in range(n):
-        if param_types[i] == DIM_CATEGORICAL:
+    # Preserve persisted coordinate identities while resolving parents first.
+    for i in compiled['evaluation_order']:
+        if not condition_satisfied(conditions[i], params):
             continue
-        if conditions[i] is not None:
-            if not _is_condition_satisfied(conditions[i], params):
-                continue
         value = doubles[i]
-        if param_types[i] == DIM_INTEGER:
-            value = round(value)
+        if param_types[i] == DIM_CATEGORICAL:
+            value = value_maps[param_names[i]][math.floor(value + 0.5)]
+        elif param_types[i] == DIM_INTEGER:
+            value = math.floor(value + 0.5)
         params[param_names[i]] = value
 
     return params
