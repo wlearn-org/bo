@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=64"]
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -9,6 +9,7 @@ description = "Bayesian optimization with Gaussian processes for hyperparameter 
 readme = "README.md"
 authors = [{ name = "Anton Zemlyansky" }]
 license = "Apache-2.0"
+license-files = ["LICENSE", "NOTICE"]
 requires-python = ">=3.9"
 classifiers = [
     "Development Status :: 3 - Alpha",

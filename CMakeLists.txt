@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.16)
 project(bo C)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
+include(CTest)
 
 set(CORE_SOURCES src/bo.c src/wl_api.c)
 
@@ -19,4 +20,5 @@ if(BUILD_TESTING)
     target_link_libraries(test_bo bo)
     target_include_directories(test_bo PRIVATE src)
     target_link_libraries(test_bo m)
+    add_test(NAME bo_native COMMAND test_bo)
 endif()

@@ -1,7 +1,7 @@
 import os
 import subprocess
 import sys
-from setuptools import setup, Extension, find_packages
+from setuptools import setup, Extension
 
 if sys.platform == 'win32':
     sys.exit(
@@ -12,8 +12,6 @@ here = os.path.dirname(os.path.abspath(__file__))
 csrc = os.path.join(here, 'csrc')
 repo_root = os.path.dirname(here)
 src_dir = os.path.join(repo_root, 'src')
-with open(os.path.join(here, 'README.md'), encoding='utf-8') as handle:
-    long_description = handle.read()
 
 
 def _repo_source_files():
@@ -59,42 +57,6 @@ for root, dirs, files in os.walk('csrc'):
 sources.append(os.path.join('wlearn_bo', '_native.c'))
 
 setup(
-    name='wlearn-bo',
-    version='0.1.0',
-    description=(
-        'Bayesian optimization with Gaussian processes for '
-        'hyperparameter tuning'
-    ),
-    long_description=long_description,
-    long_description_content_type='text/markdown',
-    author='Anton Zemlyansky',
-    license_files=['LICENSE', 'NOTICE'],
-    url='https://wlearn.org',
-    project_urls={
-        'Repository': 'https://github.com/wlearn-org/bo',
-        'Issues': 'https://github.com/wlearn-org/bo/issues',
-    },
-    python_requires='>=3.9',
-    platforms=['Linux'],
-    classifiers=[
-        'Development Status :: 3 - Alpha',
-        'Intended Audience :: Developers',
-        'Intended Audience :: Science/Research',
-        'Operating System :: POSIX :: Linux',
-        'Programming Language :: C',
-        'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.9',
-        'Programming Language :: Python :: 3.10',
-        'Programming Language :: Python :: 3.11',
-        'Programming Language :: Python :: 3.12',
-        'Programming Language :: Python :: 3.13',
-        'Topic :: Scientific/Engineering :: Artificial Intelligence',
-    ],
-    keywords=(
-        'bayesian-optimization gaussian-process '
-        'hyperparameter-tuning automl wlearn'
-    ),
-    packages=find_packages(),
     ext_modules=[
         Extension(
             'wlearn_bo._native',
