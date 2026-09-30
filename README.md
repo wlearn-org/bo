@@ -48,6 +48,8 @@ console.log('Best score:', optimizer.bestScore)
 
 ```js
 const { autoFit } = require('@wlearn/automl')
+const { LinearModel } = require('@wlearn/liblinear')
+const models = [{ name: 'linear', classId: 'wlearn.liblinear.classifier@1', cls: LinearModel }]
 
 const result = await autoFit(models, X, y, {
   strategy: 'bayesian',
@@ -68,7 +70,7 @@ const result = await autoFit(models, X, y, {
 Conditional parameters are supported via `condition`:
 
 ```js
-{
+const space = {
   algo: { type: 'categorical', values: ['svm', 'rf'] },
   C: { type: 'log_uniform', low: 0.01, high: 100, condition: { algo: 'svm' } },
   nTrees: { type: 'int_uniform', low: 10, high: 500, condition: { algo: 'rf' } },
